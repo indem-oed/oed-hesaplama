@@ -194,17 +194,17 @@ result.innerHTML="<strong>Girilen bilgiler ilgili kategori için zorunluluk eşi
 return;
 }
 
-const planned=Math.max(n,ceil(f/3));
+const planned = Math.ceil(Math.max(n, ceil(f/3)) * 1.30);
 
 result.innerHTML=`
 <strong>OED İHTİYAÇ ANALİZİ</strong>
-<h1 style="color:#c62828">${planned} ADET OED</h1>
-<p>Kategori bazlı hesaplanan adet: <b>${n}</b></p>
-<p>Kat kriteri dahil ön planlama: <b>${planned}</b></p>
+<p><b>ÖNERİLEN OED CİHAZ ADEDİ</b></p>
+<h1 style="color:#c62828">${planned} ADET</h1>
 <p>Bulundurma süresi: <b>${year} yılı sonuna kadar</b></p>
-<p>Cihaza erişim süresi en fazla 3 dakika olmalıdır.</p>
-<p>${note}</p>
-<p>Kesin adet için yerleşim ve erişim analizi yapılmalıdır.</p>`;
+<p><b>3 Dakikalık Erişim Hedefi</b></p>
+<p>Önerilen cihaz adedi, mevzuat kriterleri ve ilave güvenlik kapasitesi dikkate alınarak hesaplanmıştır.</p>
+<p>Bu sonuç ön değerlendirme niteliğindedir. Kesin cihaz ihtiyacı yerleşim ve erişim analiziyle belirlenmelidir.</p>`;
+
 });
 </script>
 </body>
