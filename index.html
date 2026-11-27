@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>İNDEM - OED İhtiyaç Hesaplama</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:15px;background:#fff;font-family:Arial,sans-serif;color:#123557}
+main{max-width:900px;margin:auto;background:#edf3f8;padding:25px;border-radius:12px}
+h1{text-align:center;font-size:26px}
+.subtitle{text-align:center;line-height:1.6}
+label{display:block;font-weight:bold;margin-top:16px}
+input,select{width:100%;padding:13px;margin-top:7px;border:1px solid #bdcbd8;border-radius:6px;font-size:16px;background:white}
+button,.contact{display:block;width:100%;padding:15px;margin-top:20px;border:0;border-radius:7px;background:#c62828;color:white;font-size:17px;font-weight:bold;text-align:center;text-decoration:none;cursor:pointer}
+.contact{background:#128c7e}
+#result{background:white;border-left:5px solid #123557;padding:20px;margin-top:20px;border-radius:8px;line-height:1.7}
+small{display:block;margin-top:18px;line-height:1.6;color:#526477}
+</style>
+</head>
+<body>
+<main>
+<h1>OED İhtiyaç Hesaplama Sistemi</h1>
+<p class="subtitle">Kurumunuzun OED cihazı ihtiyacını belirleyin.<br>İNDEM A.Ş. | ASELSAN Yetkili Satıcısı</p>
+
+<form id="calculator">
+<label>Kurum / Tesis Türü</label>
+<select id="type" required>
+<option value="">Seçiniz</option>
+<option value="avm">Alışveriş Merkezi</option>
+<option value="work">İşyeri / Kamu Kurumu / Fabrika</option>
+<option value="uni">Üniversite</option>
+<option value="hotel">Otel / Konaklama Tesisi</option>
+<option value="dorm">Öğrenci Yurdu</option>
+<option value="fitness">Fitness Salonu</option>
+<option value="sport">Spor Tesisi</option>
+<option value="stadium">Stadyum</option>
+<option value="airport">Havalimanı</option>
+<option value="station">Tren Garı</option>
+<option value="metro">Raylı Sistem İstasyonu</option>
+<option value="fuel">Akaryakıt İstasyonu</option>
+<option value="event">Etkinlik Alanı</option>
+<option value="square">Belirlenmiş Kent Meydanı</option>
+<option value="worship">Merkezi Büyük İbadethane</option>
+<option value="terminal">Kapsamdaki Otobüs Terminali</option>
+<option value="plane">Yolcu Uçağı</option>
+<option value="train">Şehirlerarası Yolcu Treni</option>
+<option value="ship">Yolcu Gemisi</option>
+<option value="olympic">TOHM / SEM</option>
+</select>
+<div id="fields"></div>
+<button type="submit">OED İHTİYACINI HESAPLA</button>
+</form>
+
+<div id="result" hidden></div>
+
+<a class="contact" href="https://wa.me/905322556275" target="_blank" rel="noopener">WHATSAPP İLE BİLGİ VE TEKLİF ALIN</a>
+
+<small>Bu sistem OED Rehberi esas alınarak hazırlanmış bir ön değerlendirme aracıdır. Kesin cihaz ihtiyacı, bina yapısı, bağımsız bölümler, insan yoğunluğu ve erişim sürelerine göre belirlenmelidir.</small>
+</main>
+
+<script>
+const type=document.getElementById("type");
+const fields=document.getElementById("fields");
+const result=document.getElementById("result");
+
+const definitions={
+avm:[["area","Satış alanı (m²)"],["floors","Kat sayısı"]],
+work:[["people","Aynı anda bulunan çalışan sayısı"],["area","Kampüs alanı (m²)"],["floors","Bina kat sayısı"]],
+uni:[["people","Aynı anda bulunan çalışan sayısı"],["students","Aynı anda bulunan öğrenci sayısı"],["area","Kampüs alanı (m²)"],["floors","Bina kat sayısı"]],
+hotel:[["beds","Yatak kapasitesi"],["floors","Kat sayısı"]],
+dorm:[["beds","Yatak kapasitesi"],["floors","Kat sayısı"]],
+fitness:[["area","Ruhsata esas alan (m²)"],["floors","Kat sayısı"]],
+sport:[["area","Tesis alanı (m²)"],["floors","Kat sayısı"]],
+stadium:[["area","Tesis alanı (m²)"],["seats","Koltuk sayısı"],["sections","Bağımsız tribün sayısı"]],
+airport:[["area","Yolcu hizmet alanı (m²)"],["floors","Kat sayısı"]],
+station:[["area","Yolcu hizmet alanı (m²)"],["floors","Kat sayısı"]],
+event:[["people","Katılımcı kapasitesi"]],
+square:[["area","Meydan alanı (m²)"]],
+worship:[["area","İbadethane alanı (m²)"],["floors","Kat sayısı"]],
+terminal:[["area","Terminal alanı (m²)"],["platforms","Peron sayısı"],["floors","Kat sayısı"]],
+ship:[["people","Yolcu kapasitesi"]],
+fuel:[],metro:[],plane:[],train:[],olympic:[]
+};
+
+type.addEventListener("change",()=>{
+fields.innerHTML="";
+result.hidden=true;
+(definitions[type.value]||[]).forEach(([id,label])=>{
+const min=id==="students"?0:1;
+fields.innerHTML+=`<label for="${id}">${label}</label><input id="${id}" type="number" min="${min}" step="1" required>`;
+});
+});
+
+document.getElementById("calculator").addEventListener("submit",function(e){
+e.preventDefault();
+
+const v=id=>Number(document.getElementById(id)?.value||0);
+const a=v("area"),p=v("people"),f=v("floors"),b=v("beds"),s=v("seats");
+const ceil=Math.ceil;
+let n=0,year=2026,note="";
+
+switch(type.value){
+case "avm":
+if(a>5000)n=ceil(a/10000);
+break;
+
+case "work":
+case "uni":
+if(p>=500){
+n=Math.max(1,ceil(p/1000),ceil(a/50000));
+note="Çalışan ve alan kriterlerinden yüksek olanı ihtiyatlı planlama için kullanılmıştır.";
+}else if(p>=200){
+year=2027;n=Math.max(1,ceil(a/50000));
+}else if(p>=100){
+year=2028;n=Math.max(1,ceil(a/50000));
+}
+if(type.value==="uni"){
+note+=" Üniversitelerde öğrenci yoğunluğu da ayrıca değerlendirilmelidir. Toplam kullanıcı: "+(p+v("students"));
+}
+break;
+
+case "hotel":
+case "dorm":
+if(b>500||(type.value==="dorm"&&b===500)){
+n=ceil(b/500);
+}else if(b>100||(type.value==="dorm"&&b===100)){
+year=2027;n=1;
+}
+break;
+
+case "fitness":
+if(a>800)n=(a>2000&&f>1)?2:1;
+break;
+
+case "sport":
+if(a>10000)n=ceil(a/5000);
+else if(a>5000){year=2027;n=1;}
+break;
+
+case "stadium":
+if(a>10000||s>10000){
+n=Math.max(1,ceil(a/5000),ceil(s/10000),v("sections"));
+}else if(a>5000||s>1000){
+year=2027;n=1;
+}
+break;
+
+case "airport":
+case "station":
+n=Math.max(1,ceil(a/10000),f);
+break;
+
+case "metro":
+case "plane":
+case "train":
+n=1;
+break;
+
+case "fuel":
+year=2028;n=1;
+break;
+
+case "event":
+if(p>=1000)n=ceil(p/1000);
+break;
+
+case "square":
+n=ceil(a/50000);
+break;
+
+case "worship":
+if(a>=10000){year=2027;n=ceil(a/10000);}
+break;
+
+case "terminal":
+n=Math.max(1,ceil(a/20000),ceil(v("platforms")/50));
+note="Alan ve peron kriterlerinden yüksek olanı ihtiyatlı planlama için kullanılmıştır.";
+break;
+
+case "ship":
+if(p>=100)n=1;
+break;
+
+case "olympic":
+year=2027;n=1;
+break;
+}
+
+result.hidden=false;
+
+if(n===0){
+result.innerHTML="<strong>Girilen bilgiler ilgili kategori için zorunluluk eşiğini karşılamıyor.</strong><p>Risk ve insan yoğunluğuna göre gönüllü OED konumlandırması önerilebilir.</p>"+note;
+return;
+}
+
+const planned=Math.max(n,ceil(f/3));
+
+result.innerHTML=`
+<strong>OED İHTİYAÇ ANALİZİ</strong>
+<h1 style="color:#c62828">${planned} ADET OED</h1>
+<p>Kategori bazlı hesaplanan adet: <b>${n}</b></p>
+<p>Kat kriteri dahil ön planlama: <b>${planned}</b></p>
+<p>Bulundurma süresi: <b>${year} yılı sonuna kadar</b></p>
+<p>Cihaza erişim süresi en fazla 3 dakika olmalıdır.</p>
+<p>${note}</p>
+<p>Kesin adet için yerleşim ve erişim analizi yapılmalıdır.</p>`;
+});
+</script>
+</body>
+</html>
